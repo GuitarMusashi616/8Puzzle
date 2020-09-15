@@ -99,89 +99,23 @@ def breadth_first(problem, solution):
     :rtype: Node
     """
     frontier = [problem]
-    ignore = []
-    add(ignore, problem)
-
-    expanded_nodes = 0
-    unexpanded_nodes = 1
+    ignore = {str(problem): True}
 
     while frontier:
         leaf_node = frontier.pop(0)
 
         if leaf_node == solution:
-            print(f"expanded nodes: {expanded_nodes}")
-            print(f"unexpanded nodes: {unexpanded_nodes}\n")
+            print(f"expanded nodes: {len(ignore) - len(frontier)}")
+            print(f"unexpanded nodes: {len(frontier)}\n")
             return leaf_node
 
-        unexpanded_nodes -= 1
-        expanded_nodes += 1
-        # print(expanded_nodes)
-        # print(unexpanded_nodes)
-        # print(len(ignore))
-
         for resulting_node in leaf_node.expand():
-            # Uses binary search on sorted array ignore to see if node is already in frontier or has already been expanded
-            if search(ignore, resulting_node):
+            # Uses dictionary to see if resulting node should be further investigated
+            if str(resulting_node) in ignore:
                 pass
             else:
                 frontier.append(resulting_node)
-                # Adds and sorts the resulting node to the ignore array so we know not to add it to frontier again
-                ignore = add(ignore, resulting_node)
-                unexpanded_nodes += 1
-
-
-def add(ignore, resulting_node):
-    temp_arr = []
-    for i in range(0, 3):
-        for j in range(0, 3):
-            temp_arr.append(resulting_node.state.grid[i][j])
-    res = int("".join(map(str, temp_arr)))
-    temp_int = int(res)
-    if len(ignore) == 0:
-        ignore.append(temp_int)
-    else:
-        for i in range(len(ignore)):
-            if ignore[i] > temp_int:
-                index = i
-                break
-        ignore = ignore[:i] + [temp_int] + ignore[i:]
-        return ignore
-
-
-def search(ignore, resulting_node):
-    temp_arr = []
-    for i in range(0, 3):
-        for j in range(0, 3):
-            temp_arr.append(resulting_node.state.grid[i][j])
-    res = int("".join(map(str, temp_arr)))
-    temp_int = int(res)
-    present = binary_search(ignore, 0, len(ignore) - 1, temp_int)
-    return present
-
-
-def binary_search(arr, l, r, x):
-    # Check base case
-    if r >= l:
-
-        mid = l + (r - l) // 2
-
-        # If element is present at the middle itself
-        if arr[mid] == x:
-            return True
-
-            # If element is smaller than mid, then it
-        # can only be present in left subarray
-        elif arr[mid] > x:
-            return binary_search(arr, l, mid - 1, x)
-
-            # Else the element can only be present
-        # in right subarray
-        else:
-            return binary_search(arr, mid + 1, r, x)
-
-    else:
-        # Element is not present in the array
-        return False
+                ignore[str(resulting_node)] = True
 
 
 def greedy_best(problem, solution):
@@ -196,31 +130,24 @@ def greedy_best(problem, solution):
     """
     frontier = PriorityQueue()
     frontier.put(problem)
-    explored = []
-
-    expanded_nodes = 0
-    unexpanded_nodes = 1
+    ignore = {str(problem): True}
 
     while frontier:
         leaf_node = frontier.get()
 
         if leaf_node == solution:
-            print(f"expanded nodes: {expanded_nodes}")
-            print(f"unexpanded nodes: {unexpanded_nodes}\n")
+            print(f"expanded nodes: {len(ignore) - len(frontier.queue)}")
+            print(f"unexpanded nodes: {len(frontier.queue)}\n")
             return leaf_node
 
-        explored.append(leaf_node)
-        unexpanded_nodes -= 1
-        expanded_nodes += 1
-
         for resulting_node in leaf_node.expand():
-            if resulting_node in frontier.queue or resulting_node in explored:
+            if str(resulting_node) in ignore:
                 pass
             else:
-                priority = misplaced_tiles(resulting_node, solution)
-                resulting_node.set_priority(priority)
+                underestimate = misplaced_tiles(resulting_node, solution)
+                resulting_node.set_priority(underestimate)
                 frontier.put(resulting_node)
-                unexpanded_nodes += 1
+                ignore[str(resulting_node)] = True
 
 
 def a_star(problem, solution, heuristic=misplaced_tiles):
@@ -237,28 +164,21 @@ def a_star(problem, solution, heuristic=misplaced_tiles):
    """
     frontier = PriorityQueue()
     frontier.put(problem)
-    explored = []
-
-    expanded_nodes = 0
-    unexpanded_nodes = 1
+    ignore = {str(problem): True}
 
     while frontier:
         leaf_node = frontier.get()
 
         if leaf_node == solution:
-            print(f"expanded nodes: {expanded_nodes}")
-            print(f"unexpanded nodes: {unexpanded_nodes}\n")
+            print(f"expanded nodes: {len(ignore) - len(frontier.queue)}")
+            print(f"unexpanded nodes: {len(frontier.queue)}\n")
             return leaf_node
 
-        explored.append(leaf_node)
-        expanded_nodes += 1
-        unexpanded_nodes -= 1
-
         for resulting_node in leaf_node.expand():
-            if resulting_node in frontier.queue or resulting_node in explored:
+            if str(resulting_node) in ignore:
                 pass
             else:
-                priority = heuristic(resulting_node, solution)
-                resulting_node.set_priority(priority + resulting_node.path_cost)
+                underestimate = heuristic(resulting_node, solution)
+                resulting_node.set_priority(underestimate + resulting_node.path_cost)
                 frontier.put(resulting_node)
-                unexpanded_nodes += 1
+                ignore[str(resulting_node)] = True

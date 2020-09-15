@@ -21,6 +21,7 @@ def get_start():
 
         start_board = create_board(usr_start)
         if start_board:
+
             print("Your starting board:")
             print_board(start_board)
             return start_board
@@ -123,7 +124,7 @@ def run_search(start_board, end_board, search_type):
         print("\nBoards pass parity check.\n")
     else:
         print("\nBoards do not pass parity check. Solution impossible.\n")
-        return
+        return -1
     # Determines which search to run
     if search_type == 1:
         print("Breadth-First Search Results:\n")
@@ -267,7 +268,8 @@ def main():
     search_type = get_search()
     while search_type != -1:
         # Runs searches
-        run_search(start_board, end_board, search_type)
+        if (run_search(start_board, end_board, search_type)) == -1:
+            break
         search_type = get_search()
 
 
